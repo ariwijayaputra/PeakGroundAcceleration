@@ -6,6 +6,8 @@
 #include <CircularBuffer.h>
 #include <ThreeWire.h>  
 #include <RtcDS1302.h>
+#include "SPI.h"
+#include "SD.h"
 
 #include "I2Cdev.h"
 
@@ -35,7 +37,10 @@ CircularBuffer<int,5> bufferZ; // array dalam proses reduce noise z
 long AccX,AccY,AccZ = 0; //variabel menyimpan raw accel yang telah di reduce noise
 float mX, mY, mZ = 0.000000; // variabel menyimpan acceleration dalam cm/s^2
 float pga; //variabel menyimpan pga
+float v; //variable menyimapn velocity
 
+// Variabel sdcard
+const int chipSelect = D8; //pin sdcard
 
 // variable RTC DS1302
 ThreeWire myWire(D3,D4,D0); // IO, SCLK, CE
@@ -131,6 +136,29 @@ void printDateTime(const RtcDateTime& dt)
     Serial.print(datestring);
 }
 // --- end of printDateTime ---
+
+
+// --- start of setupSD() ---
+void setupSD(){
+  Serial.print("Initializing SD card...");
+  // make sure that the default chip select pin is set to
+  // output, even if you don't use it:
+  pinMode(SS, OUTPUT);
+  
+  // cek apakah ada kartu sd
+  if (!SD.begin(chipSelect)) {
+    Serial.println("Card failed, or not present");
+    // don't do anything more:
+    return;
+  }
+  Serial.println("card initialized.");
+  
+  // open the file. note that only one file can be open at a time,
+  // so you have to close this one before opening another.
+  File dataFile = SD.open("datalog.txt");
+
+}
+// --- end  of setupSD() ---
 
 
 // --- start of setupRTC() ---
@@ -238,6 +266,7 @@ void convert(int x, int y, int z){
   // pga (g) = sqrt(gx^2 + gY^2). pga dihitung dengan pitagoras
   // untuk mengkombinasikan hasil akselerasi sumbu x dan y
   pga = sqrt((gX*gX)+(gY*gY));
+  v = pga*980; 
 }
 // --- end of convert() ---
 
@@ -246,7 +275,7 @@ void convert(int x, int y, int z){
 // fungsi untuk mengurangi noice yang didapat dari sensor
 void getReducedNoiseAccel(){
   
-  if(accelTimer>100){
+  if(accelTimer>200){
     accel.getAcceleration(&ax, &ay, &az);
     AccX = 0;
     AccY = 0;
@@ -308,11 +337,8 @@ void calibrateAccel(){
 
 // --- start of monitorData() ---
 // mencetak data accelerometer ke serial monitor 9600
-// raw X| raw Y | raw Z | gx | gy | gz | mx | my | mz 
+// gx | gy | gz | mx | my | mz | pga | v |
 void monitorData(){
-  Serial.print(AccX); Serial.print("\t");
-  Serial.print(AccY); Serial.print("\t");
-  Serial.print(AccZ); Serial.print("\t");
   Serial.print(gX,6); Serial.print("\t");
   Serial.print(gY,6); Serial.print("\t");
   Serial.print(gZ,6); Serial.print("\t");
@@ -328,10 +354,10 @@ void monitorData(){
 // --- start of publishData() ---
 // fungsi untuk memformat data dan
 // mengirim data ke mqtt 
-void publishData(const RtcDateTime& dt, float pga, float gX, float gY){
+void publishData(const RtcDateTime& dt, float pga, float v){
   char publishStr[52];
   sprintf(
-    publishStr, "%02u/%02u/%04u %02u:%02u:%02u|%.6f|%.6f|%.6f|",
+    publishStr, "%02u/%02u/%04u %02u:%02u:%02u|%.6f|%.6f|",
     dt.Month(),
     dt.Day(),
     dt.Year(),
@@ -339,9 +365,8 @@ void publishData(const RtcDateTime& dt, float pga, float gX, float gY){
     dt.Minute(),
     dt.Second(),
     pga, 
-    gX,
-    gY,
-    gZ
+    v
+  
   );
   //Serial.println(publishStr);
   if (!client.publish(topic,publishStr))
@@ -381,14 +406,14 @@ void loop() {
 
 
   // Publish data setiap detik (1000ms) ke mqtt
-  if(publishTimer > 500){
+  if(publishTimer > 1000){
     //ambil data rtc
     RtcDateTime now = Rtc.GetDateTime();
     getRTCData(now);
     //print data ke serial monitor
     monitorData();
     //publish data
-    publishData(now, pga, gX, gY);
+    publishData(now, pga, v);
     //reset timer
     publishTimer = 0; 
   }
