@@ -1,6 +1,6 @@
 var mqtt;
 var stringData;
-var date, pga, x, y, shake, damage;
+var date, pga, v, shake, damage, intensity;
 
 //fungsi untuk melakukan koneksi dengan broker
 //berdasarkan identitas dari broker seperti host, port, path, username dan password
@@ -60,14 +60,14 @@ $( document ).ready(function() {
     if (responseObject.errorCode !== 0) {
       console.log("onConnectionLost:"+responseObject.errorMessage);
     }
+    mqtt.connect(options);
   }
   //fungsi untuk memecah data payload dari topic
   function splitString(payload){
       stringData = payload.split("|");
       date = stringData[0];
       pga = stringData[1];
-      x = stringData[2];
-      y = stringData[3];
+      v = stringData[2];
       //shake = stringData[4];
       //damage = stringData[5];
   }
@@ -81,47 +81,58 @@ $( document ).ready(function() {
       splitString(payload);
       $("#date").html(date); 
       $("#pga").html(pga); 
-      $("#x").html(x); 
-      $("#y").html(y);
+      $("#v").html(v); 
       if(pga < 0.000464){
         shake = "Not Felt";
         damage = "None";
+        intensity= "I";
       } 
       else if(pga > 0.000464 && pga<=0.00297){
         shake = "Weak";
         damage = "None";
+        intensity= "II -III";
       }
       else if(pga > 0.00297 && pga<=0.0276){
         shake = "Light";
         damage = "None";
+        intensity= "IV";
       }
       else if(pga > 0.0276 && pga<=0.115){
         shake = "Moderate";
         damage = "Very Light";
+        intensity= "V";
       }
       else if(pga > 0.115 && pga<=0.215){
         shake = "Strong";
         damage = "Light";
+        intensity= "VI";
       }
       else if(pga > 0.215 && pga<=0.401){
         shake = "Very Strong";
         damage = "Moderate";
+        intensity= "VII";
       }
       else if(pga > 0.401 && pga<=0.747){
         shake = "Severe";
         damage = "Moderate to Heavy";
+        intensity= "VIII";
       }
       else if(pga > 0.747 && pga<=1.39){
         shake = "Violent";
         damage = "Heavy";
+        intensity= "IX";
       }
       else if(pga > 1.39){
         shake = "Extreme";
         damage = "Very Heavy";
+        intensity= "X+";
       }
       $("#shake").html(shake); 
       $("#damage").html(damage);
-      postData();
+      $("#intensity").html(intensity);
+      //postData();
+      removeData(myChart);
+      addData(myChart,date,pga);
     }
   };
 
