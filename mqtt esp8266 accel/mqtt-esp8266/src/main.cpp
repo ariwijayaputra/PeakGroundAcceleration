@@ -38,12 +38,16 @@ long AccX,AccY,AccZ = 0; //variabel menyimpan raw accel yang telah di reduce noi
 float mX, mY, mZ = 0.000000; // variabel menyimpan acceleration dalam cm/s^2
 float pga; //variabel menyimpan pga
 float v; //variable menyimapn velocity
+String damage;
+String shake;
+String intensity;
 
 // Variabel sdcard
 const int chipSelect = D8; //pin sdcard
+File dataFile = SD.open("log.txt", FILE_WRITE);
 
 // variable RTC DS1302
-ThreeWire myWire(D3,D4,D0); // IO, SCLK, CE
+ThreeWire myWire(D3,D4,3); // IO, SCLK, CE
 RtcDS1302<ThreeWire> Rtc(myWire);
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
@@ -112,8 +116,6 @@ void connectBroker(){
   {
     Serial.println("subscribe success");
   }
-  // publish untuk mengirim pesan "ESP32 Connected" ke topic mqtt
-  client.publish(topic, "ESP32 Connected");  
 }
 // --- end of connectBroker() ---
 
@@ -127,8 +129,8 @@ void printDateTime(const RtcDateTime& dt)
     snprintf_P(datestring, 
             countof(datestring),
             PSTR("%02u/%02u/%04u %02u:%02u:%02u"),
-            dt.Month(),
             dt.Day(),
+            dt.Month(),
             dt.Year(),
             dt.Hour(),
             dt.Minute(),
@@ -155,8 +157,10 @@ void setupSD(){
   
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
-  File dataFile = SD.open("datalog.txt");
-
+  File dataFile = SD.open("log.txt", FILE_WRITE);
+  if(dataFile){
+    dataFile.println("date time| pga | v | intensity | shake | damage |");
+  }
 }
 // --- end  of setupSD() ---
 
@@ -251,7 +255,7 @@ void setupMPU6050(){
 
 
 // --- start of convert() ---
-// fungsi untuk convert MPU 6050 raw data to g
+// fungsi untuk convert MPU 6050 raw data to readable data
 void convert(int x, int y, int z){
   // berdasarkan datasheet mpu6050, 16384 lsb = 1g
   gX = float(x) / 16384.000000;
@@ -267,6 +271,51 @@ void convert(int x, int y, int z){
   // untuk mengkombinasikan hasil akselerasi sumbu x dan y
   pga = sqrt((gX*gX)+(gY*gY));
   v = pga*980; 
+  if(pga < 0.000464){
+        shake = "Not Felt";
+        damage = "None";
+        intensity= "I";
+      } 
+      else if(pga > 0.000464 && pga<=0.00297){
+        shake = "Weak";
+        damage = "None";
+        intensity= "II -III";
+      }
+      else if(pga > 0.00297 && pga<=0.0276){
+        shake = "Light";
+        damage = "None";
+        intensity= "IV";
+      }
+      else if(pga > 0.0276 && pga<=0.115){
+        shake = "Moderate";
+        damage = "Very Light";
+        intensity= "V";
+      }
+      else if(pga > 0.115 && pga<=0.215){
+        shake = "Strong";
+        damage = "Light";
+        intensity= "VI";
+      }
+      else if(pga > 0.215 && pga<=0.401){
+        shake = "Very Strong";
+        damage = "Moderate";
+        intensity= "VII";
+      }
+      else if(pga > 0.401 && pga<=0.747){
+        shake = "Severe";
+        damage = "Moderate to Heavy";
+        intensity= "VIII";
+      }
+      else if(pga > 0.747 && pga<=1.39){
+        shake = "Violent";
+        damage = "Heavy";
+        intensity= "IX";
+      }
+      else if(pga > 1.39){
+        shake = "Extreme";
+        damage = "Very Heavy";
+        intensity= "X+";
+      }
 }
 // --- end of convert() ---
 
@@ -346,6 +395,7 @@ void monitorData(){
   Serial.print(mY,6); Serial.print("\t");
   Serial.print(mZ,6); Serial.print("\t"); 
   Serial.print(pga,6); Serial.print("\t"); 
+  Serial.print(v,6); Serial.print("\t"); 
   Serial.println();
 }
 // --- end of monitorData() ---
@@ -357,7 +407,7 @@ void monitorData(){
 void publishData(const RtcDateTime& dt, float pga, float v){
   char publishStr[52];
   sprintf(
-    publishStr, "%02u/%02u/%04u %02u:%02u:%02u|%.6f|%.6f|",
+    publishStr, "%02u/%02u/%04u %02u:%02u:%02u,%.6f,%.6f,",
     dt.Month(),
     dt.Day(),
     dt.Year(),
@@ -375,6 +425,23 @@ void publishData(const RtcDateTime& dt, float pga, float v){
     connectBroker();
   }
   
+  Serial.print(publishStr);
+  Serial.print(intensity);
+  Serial.print(",");
+  Serial.print(shake);
+  Serial.print(",");
+  Serial.print(damage);
+  Serial.println(",");
+  File dataFile = SD.open("log.txt", FILE_WRITE);
+  if(dataFile){
+    dataFile.print(publishStr);
+    dataFile.print(intensity);
+    dataFile.print(",");
+    dataFile.print(shake);
+    dataFile.print(",");
+    dataFile.print(damage);
+    dataFile.println(",");
+  }
 }
 // --- end of publishData() ---
 
@@ -387,6 +454,7 @@ void setup() {
   connectWifi();
   connectBroker();
   setupRTC();
+  setupSD();
   // mpu6050 Setup
   setupMPU6050();
   // kalibrasi sensor
@@ -411,7 +479,7 @@ void loop() {
     RtcDateTime now = Rtc.GetDateTime();
     getRTCData(now);
     //print data ke serial monitor
-    monitorData();
+    //monitorData();
     //publish data
     publishData(now, pga, v);
     //reset timer
