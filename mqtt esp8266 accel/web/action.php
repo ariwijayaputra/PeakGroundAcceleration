@@ -5,10 +5,10 @@
 		$pga_data = new pga_data;
 		$timestamp = $_POST["dt_timestamp"];
 		$pga = $_POST["dt_pga"];
-        $x = $_POST["dt_x"];
-		$y = $_POST["dt_y"];
+        $intensity = $_POST["dt_intensity"];
+		$velocity = $_POST["dt_v"];
 		$shake = $_POST["dt_shake"];
 		$damage = $_POST["dt_damage"];
-		$pga_data->add($timestamp, $pga, $x,$y,$shake,$damage);
+		$pga_data->add($timestamp, $intensity, $pga, $velocity, $shake,$damage);
 	}
 ?>

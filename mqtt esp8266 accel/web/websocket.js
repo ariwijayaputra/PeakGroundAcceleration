@@ -46,8 +46,8 @@ $( document ).ready(function() {
       $.post('action.php?action=insertData',{
           dt_timestamp: date,
           dt_pga: pga, 
-          dt_x: x,
-          dt_y: y,
+          dt_intensity: intensity,
+          dt_v: v,
           dt_shake: shake, 
           dt_damage: damage
         })
@@ -64,7 +64,7 @@ $( document ).ready(function() {
   }
   //fungsi untuk memecah data payload dari topic
   function splitString(payload){
-      stringData = payload.split("|");
+      stringData = payload.split(",");
       date = stringData[0];
       pga = stringData[1];
       v = stringData[2];
@@ -130,7 +130,7 @@ $( document ).ready(function() {
       $("#shake").html(shake); 
       $("#damage").html(damage);
       $("#intensity").html(intensity);
-      //postData();
+      postData();
       removeData(myChart);
       addData(myChart,date,pga);
     }

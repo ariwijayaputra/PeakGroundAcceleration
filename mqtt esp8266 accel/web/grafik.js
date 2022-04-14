@@ -1,6 +1,7 @@
 
 const ctx = document.getElementById("graph").getContext("2d");
-
+const dataPGA = [];
+const dataLabel = [];
 const myChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -9,11 +10,11 @@ const myChart = new Chart(ctx, {
             label: '# of PGA',
             data: [0, 0,0,0,0,0,0,0,0,0],
             backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
+                'rgba(255, 50, 132, 0.2)',
                 
             ],
             borderColor: [
-                'rgba(255, 99, 132, 1)',
+                'rgba(255, 50, 132, 1)',
             ],
             borderWidth: 1
         }]
@@ -44,4 +45,12 @@ function removeData(chart) {
         dataset.data.shift();
     });
     chart.update();
+}
+
+function reverseData(){
+    for (let i = 0; i < dataLabel.length; i++) {
+        addData(myChart, dataLabel[i], dataPGA[i]);
+        removeData(myChart);
+    }
+    
 }

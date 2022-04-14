@@ -13,12 +13,12 @@
 		}
 	}
 	class pga_data extends database{
-		public function add($timestamp, $pga, $x,$y,$shake,$damage)
+		public function add($timestamp, $intensity, $pga, $velocity, $shake,$damage)
 		{
 			$conn = $this->connect();
-			$sql = "INSERT INTO tbPGA(`timestamp`, pga, x, y, shake, damage) VALUES(?,?,?,?,?,?)";
+			$sql = "INSERT INTO tbPGA(`timestamp`,`intensity`, `pga`, `velocity`, `shaking`, `damage`) VALUES(?,?,?,?,?,?)";
 			$result=$conn->prepare($sql);
-			$result->bind_param("ssssss", $timestamp, $pga, $x,$y,$shake,$damage);
+			$result->bind_param("ssssss", $timestamp, $intensity, $pga, $velocity, $shake,$damage);
 			$result->execute();
 			mysqli_stmt_store_result($result);
 			if ($result) {
@@ -32,6 +32,16 @@
 					</script>
 				";
 			}
+		}
+		public function select()
+		{
+			$conn = $this->connect();
+			$sql = "SELECT * FROM `tbPGA` ORDER BY `tbPGA`.`id` DESC LIMIT 20";
+			$data=$conn->query($sql)or die($conn->error);
+			while($d = $data->fetch_assoc()){
+				$result[] = $d;
+			}
+			return $result;
 		}
 	}
 ?>

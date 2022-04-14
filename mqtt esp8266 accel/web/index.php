@@ -20,8 +20,8 @@
         <thead>
             <tr>
                 <th>Date Time</th>
-                <th>Intensity</th>
-                <th>PGA (g)</th>
+                <th>Instrumental Intensity</th>
+                <th>Acceleration (g)</th>
                 <th>Velocity (cm/s)</th>
                 <th>Perceived Shaking</th>
                 <th>Potensial Damage</th>
@@ -29,10 +29,10 @@
         </thead>  
         <tbody>  
             <tr>
-                <td id="date">12/07/21 - 11:30:11</td>
-                <td id = "intensity"></td>
-                <td id="pga">3.00</td>
-                <td id="v">2.00</td>
+                <td id="date">dd/mm/yy - hh:mm:ss</td>
+                <td id = "intensity">I</td>
+                <td id="pga">0.000000</td>
+                <td id="v">0.000000</td>
                 <td id="shake">Not Felt</td>
                 <td id="damage">None</td>
             </tr>
@@ -44,40 +44,52 @@
         <canvas id="graph" class="w-75 mw-100 h-25 mx-auto" style = ""></canvas>
 
     </div>
+    <script src="./grafik.js"></script>
+
     <h1 class= "mx-auto text-center my-3 mt-4">History</h1>
     <table id = "mytable" class="table table-striped table-responsive text-center mx-auto w-75">
         <thead>
             <tr>
                 <th>Date Time</th>
-                <th>Intensity</th>
-                <th>PGA (g)</th>
+                <th>Instrumental Intensity</th>
+                <th>Acceleration (g)</th>
                 <th>Velocity (cm/s)</th>
                 <th>Perceived Shaking</th>
                 <th>Potensial Damage</th>
             </tr>
         </thead>  
         <tbody>
-            
+        <?php
+        	 include 'database.php';
+  			  $db = new database;
+              $dt = new pga_data;
+              $i=0;
+              foreach ($dt->select() as $x) { 
+                  if($i<10){
+                      echo "
+                      <script>
+                        dataPGA[9-".$i."]='".$x['pga']."';
+                        dataLabel[9-".$i."]='".$x['timestamp']."';
+                      </script>";
+                      $i++;
+                  }
+
+        ?>
             <tr>
-                <td>12/07/21 - 11:30:11</td>
-                <td>2.00</td>
-                <td>2.00</td>
-                <td>0.00</td>
-                <td>Not Felt</td>
-                <td>None</td>
-            </tr>
-            <tr>
-                <td>12/07/21 - 11:30:11</td>
-                <td>2.00</td>
-                <td>2.00</td>
-                <td>0.00</td>
-                <td>Not Felt</td>
-                <td>None</td>
-            </tr>
+              <td><?php echo $x['timestamp']; ?></td>
+              <td><?php echo $x['intensity']; ?></td>
+              <td><?php echo $x['pga']; ?></td>
+              <td><?php echo $x['velocity']; ?></td>
+              <td><?php echo $x['shaking']; ?></td>
+              <td><?php echo $x['damage'];} ?></td>
+                <?php
+                    echo "<script>reverseData()</script>"
+                ?>
+          	</tr>
         </tbody>
     </table>
 </body>
-<script src="./grafik.js"></script>
 <script src="./websocket.js"></script>
 <script src="./config.js"></script>
+
 </html>
