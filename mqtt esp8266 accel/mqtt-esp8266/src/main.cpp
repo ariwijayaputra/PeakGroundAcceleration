@@ -142,25 +142,25 @@ void printDateTime(const RtcDateTime& dt)
 
 // --- start of setupSD() ---
 void setupSD(){
-  Serial.print("Initializing SD card...");
+  Serial.println("Initializing SD card...");
   // make sure that the default chip select pin is set to
   // output, even if you don't use it:
   pinMode(SS, OUTPUT);
   
   // cek apakah ada kartu sd
   if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present");
-    // don't do anything more:
-    return;
+    Serial.println("Card failed or not present, check sd card and module connection");
+    Serial.println("Waiting for card connection....");
+    while (!SD.begin(chipSelect))
+    {
+      delay(500);
+    }
   }
   Serial.println("card initialized.");
   
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open("log.txt", FILE_WRITE);
-  if(dataFile){
-    dataFile.println("date time| pga | v | intensity | shake | damage |");
-  }
 }
 // --- end  of setupSD() ---
 
