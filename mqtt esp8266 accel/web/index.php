@@ -11,7 +11,15 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src= "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.js" integrity="sha512-Lii3WMtgA0C0qmmkdCpsG0Gjr6M0ajRyQRQSbTF6BsrVh/nhZdHpVZ76iMIPvQwz1eoXC3DmAg9K51qT5/dEVg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>    
-	
+	<?php
+        session_start();
+        include 'database.php';
+        $db = new database;
+        $dt = new pga_data;
+		if(!isset($_SESSION["username"])){
+            header('Location: login.php');  
+		}
+    ?>
 </head>
 <body>
     <h1 class = "mx-auto my-3 text-primary text-center">PGA</h1>
@@ -45,8 +53,11 @@
 
     </div>
     <script src="./grafik.js"></script>
-
-    <h1 class= "mx-auto text-center my-3 mt-4">History</h1>
+    <div class="mt-5 w-75 mx-auto d-flex flex-row ">
+        <h1 class= "w-75 ">History</h1>
+        <a class="mr-0 mx-auto text-right my-auto btn btn-success btn-sm" href="action.php?action=download" role="button">Download</a>
+        <a class="mr-0 mx-auto text-right my-auto btn btn-primary btn-sm" href="changePassword.php" role="button">Edit User</a>
+    </div>
     <table id = "mytable" class="table table-striped table-responsive text-center mx-auto w-75">
         <thead>
             <tr>
@@ -60,9 +71,6 @@
         </thead>  
         <tbody>
         <?php
-        	 include 'database.php';
-  			  $db = new database;
-              $dt = new pga_data;
               $i=0;
               foreach ($dt->select() as $x) { 
                   if($i<10){
@@ -72,8 +80,7 @@
                         dataLabel[9-".$i."]='".$x['timestamp']."';
                       </script>";
                       $i++;
-                  }
-
+                    }
         ?>
             <tr>
               <td><?php echo $x['timestamp']; ?></td>
