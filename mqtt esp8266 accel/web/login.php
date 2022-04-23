@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -24,7 +25,7 @@
                         </div>
                         <div class="form-group pb-4">
                             <label for="password">Password</label><br>
-                            <input type="text" class= "form-control" id="password" name="password" value="">
+                            <input type="password" class= "form-control" id="password" name="password" value="">
                         </div>
                     </div> 
                 <input type="submit" class="btn btn-dark bg-dark card-footer" name="Login" value="Login">

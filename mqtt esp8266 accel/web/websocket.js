@@ -1,5 +1,5 @@
 var mqtt;
-var stringData;
+var stringData, time, timestamp;
 var date, pga, v, shake, damage, intensity;
 
 //fungsi untuk melakukan koneksi dengan broker

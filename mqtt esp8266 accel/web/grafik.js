@@ -1,14 +1,14 @@
 
-const ctx = document.getElementById("graph").getContext("2d");
+var $ctx = $('#graph');
 const dataPGA = [];
 const dataLabel = [];
-const myChart = new Chart(ctx, {
-    type: 'line',
+var myChart = new Chart($ctx, {
     data: {
         labels: ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         datasets: [{
+            type: 'line',
             label: '# of PGA',
-            data: [0, 0,0,0,0,0,0,0,0,0],
+            data: [0,0,0,0,0,0,0,0,0,0],
             backgroundColor: [
                 'rgba(255, 50, 132, 0.2)',
                 

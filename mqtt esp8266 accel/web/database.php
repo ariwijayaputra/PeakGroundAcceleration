@@ -128,6 +128,7 @@
 				mysqli_stmt_store_result($result);
 				if ($result) {
 					echo "
+					session_destroy();
 						<script>
 							alert('Data berhasil diubah');
 							window.location.href='login.php';
@@ -138,19 +139,20 @@
 					echo "
 						<script>
 							alert('Data Gagal Disimpan');
-							window.location.href='changePassword.php';
+							window.location.href='pages/changePassword.php';
 						</script>
 					";
 				}
 				$flag = 0;
 			}
-			if($newPass == ""){
+			if($newPass == "" && $flag==1){
 				$sql = "UPDATE admin SET username = ?  WHERE username = ?";
 				$result=$conn->prepare($sql);
 				$result->bind_param("ss",$newUsername,$username);
 				$result->execute();
 				mysqli_stmt_store_result($result);
 				if ($result) {
+					session_destroy();
 					echo "
 						<script>
 							alert('Data berhasil diubah');
@@ -162,7 +164,7 @@
 					echo "
 						<script>
 							alert('Data Gagal Disimpan');
-							window.location.href='changePassword.php';
+							window.location.href='pages/changePassword.php';
 						</script>
 					";
 				}
@@ -172,7 +174,7 @@
 				echo "
 						<script>
 							alert('Konfirmasi Password Salah');
-							window.location.href='changePassword.php';
+							window.location.href='pages/changePassword.php';
 						</script>
 					";
 			}
@@ -180,7 +182,7 @@
 				echo "
 				<script>
 					alert('Password Saat Ini Salah');
-					window.location.href='changePassword.php';
+					window.location.href='pages/changePassword.php';
 				</script>
 				";
 			}
