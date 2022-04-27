@@ -10,6 +10,11 @@
 # Setup alat
 1. buka PeakGroundAcceleration-main\Arduino\PeakGroundAccelESP8266
 2. download library yang dibutuhkan
+   a. MPU6050 v0.5.0 by Electronic Cats
+   b. PubSubClient v2.8.0 by Nick O'Leary
+   c. CircularBuffer by AgileWare
+   d. Rtc by Makuna Michael C. Miller
+   e. SD by arduino
 3. setup esp8266 for arduino ide (jika belum) -> https://randomnerdtutorials.com/how-to-install-esp8266-board-arduino-ide/
 4. pilih board NodeMCU 1.0(ESP-12e Module), setting port.
 5. compile & upload
