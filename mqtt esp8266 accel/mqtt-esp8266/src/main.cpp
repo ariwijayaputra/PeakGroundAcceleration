@@ -17,8 +17,8 @@
 #endif
 
 // variabel WiFi credential
-const char* ssid     = "A4Y Family";
-const char* password = "DK1623GC";
+const char* ssid     = "";
+const char* password = "";
 
 // variabel MQTT Broker/server
 const char *mqtt_broker = "maqiatto.com"; //domain atau ip server mqtt
