@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../../opt/lampp/htdocs/pga-web"
+		},
+		{
+			"name": "mqtt-esp8266",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"random": "cpp"
+		}
+	}
+}

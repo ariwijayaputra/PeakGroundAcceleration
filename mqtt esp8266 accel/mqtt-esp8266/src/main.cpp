@@ -5,7 +5,7 @@
 #include <MPU6050.h>
 #include <CircularBuffer.h>
 #include <ThreeWire.h>  
-#include <RtcDS1302.h>
+#include <RtcDS1307.h>
 #include "SPI.h"
 #include "SD.h"
 
@@ -27,8 +27,13 @@ const char *mqtt_username = "peakgroundaccelapp@gmail.com";
 const char *mqtt_password = "acceleration";
 const int mqtt_port = 1883;
 
+// variable buzzer
+const int buzzer = D3;
+elapsedMillis buzzerDelay;
+boolean buzzerState = LOW;
+
 // variable accel MPU6050
-MPU6050 accel;
+MPU6050 accel(0x69);
 int16_t ax, ay, az; //raw data
 float gX, gY, gZ = 0.000000; // acceleration in g
 CircularBuffer<int,5> bufferX; // array dalam proses reduce noise x
@@ -47,8 +52,7 @@ const int chipSelect = D8; //pin sdcard
 File dataFile = SD.open("log.txt", FILE_WRITE);
 
 // variable RTC DS1302
-ThreeWire myWire(D3,D4,3); // IO, SCLK, CE
-RtcDS1302<ThreeWire> Rtc(myWire);
+RtcDS1307<TwoWire> Rtc(Wire);
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
 // elasedMillis sebagai timer untuk publish data
@@ -140,6 +144,13 @@ void printDateTime(const RtcDateTime& dt)
 // --- end of printDateTime ---
 
 
+// --- start of setupBuzzer() ---
+void setupBuzzer(){
+  pinMode(buzzer, OUTPUT);
+}
+// --- end of setupBuzzer() ---
+
+
 // --- start of setupSD() ---
 void setupSD(){
   Serial.println("Initializing SD card...");
@@ -186,12 +197,6 @@ void setupRTC(){
 
         Serial.println("RTC lost confidence in the DateTime!");
         Rtc.SetDateTime(compiled);
-    }
-
-    if (Rtc.GetIsWriteProtected())
-    {
-        Serial.println("RTC was write protected, enabling writing now");
-        Rtc.SetIsWriteProtected(false);
     }
 
     if (!Rtc.GetIsRunning())
@@ -243,8 +248,8 @@ void setupMPU6050(){
   #endif
   // inisiasi dan menyalakan MPU6050. diatur melalui pin D3
   Serial.println("Initializing I2C devices...");
-  pinMode(D3,OUTPUT);
-  digitalWrite(D3, HIGH);
+  //pinMode(D3,OUTPUT);
+  //digitalWrite(D3, HIGH);
   delay(1000);
   accel.initialize();
   delay(1000);
@@ -285,6 +290,7 @@ void convert(int x, int y, int z){
         shake = "Light";
         damage = "None";
         intensity= "IV";
+        
       }
       else if(pga > 0.0276 && pga<=0.115){
         shake = "Moderate";
@@ -405,7 +411,7 @@ void monitorData(){
 // fungsi untuk memformat data dan
 // mengirim data ke mqtt 
 void publishData(const RtcDateTime& dt, float pga, float v){
-  char publishStr[52];
+  char publishStr[56];
   sprintf(
     publishStr, "%02u/%02u/%04u %02u:%02u:%02u,%.6f,%.6f,",
     dt.Month(),
@@ -432,6 +438,24 @@ void publishData(const RtcDateTime& dt, float pga, float v){
   Serial.print(",");
   Serial.print(damage);
   Serial.println(",");
+
+  if(pga > 0.00297 && pga<=0.0276){
+    buzzerDelay = 950;
+    digitalWrite(buzzer,HIGH); 
+  }
+  else if(pga > 0.0276 && pga<=0.115){
+    buzzerDelay = 700;
+    digitalWrite(buzzer,HIGH);
+  }
+  else if(pga > 0.115 && pga<=0.215){
+    buzzerDelay = 500;
+    digitalWrite(buzzer,HIGH);
+  }
+  else if(pga > 0.215){
+    buzzerDelay = 300;
+    digitalWrite(buzzer,HIGH);
+  }
+
   File dataFile = SD.open("log.txt", FILE_WRITE);
   if(dataFile){
     dataFile.print(publishStr);
@@ -451,9 +475,10 @@ void publishData(const RtcDateTime& dt, float pga, float v){
 // fungsi setup dijalankan pertama kali
 void setup() {
   Serial.begin(9600);
+  setupRTC();
+  setupBuzzer();
   connectWifi();
   connectBroker();
-  setupRTC();
   setupSD();
   // mpu6050 Setup
   setupMPU6050();
@@ -484,6 +509,9 @@ void loop() {
     publishData(now, pga, v);
     //reset timer
     publishTimer = 0; 
+  }
+  if(buzzerDelay > 1000){
+    digitalWrite(buzzer,LOW);
   }
 }
 // --- end of loop() ---
