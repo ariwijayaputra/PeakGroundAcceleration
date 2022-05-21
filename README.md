@@ -1,5 +1,8 @@
 # PeakGroundAcceleration
 
+# Schematic
+![alt text](https://github.com/ariwijayaputra/PeakGroundAcceleration/blob/main/schematic_bb.png)
+
 # Setup Web
 1. download code dalam zip
 2. extract ke folder htdocs xampp
